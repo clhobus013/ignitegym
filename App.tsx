@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { StatusBar, View } from 'react-native';
 import { Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/roboto';
 import { useFonts } from 'expo-font';
 
@@ -14,8 +14,13 @@ export default function App() {
   }
 
   return (
-    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-      <Text>Home</Text>
-    </View>
+      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#202024'}}>
+        <StatusBar
+          barStyle='light-content'
+          backgroundColor='transparent'
+          translucent
+        />
+        <Text>Home</Text>
+      </View>
   );
 }
