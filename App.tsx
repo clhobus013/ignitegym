@@ -1,7 +1,8 @@
 import { StatusBar, View } from 'react-native';
 import { Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/roboto';
 import { useFonts } from 'expo-font';
-import { GluestackUIProvider, Text } from '@gluestack-ui/themed';
+import { Center, GluestackUIProvider, Text } from '@gluestack-ui/themed';
+import { config } from './config/gluestack-ui.config';
 
 export default function App() {
 
@@ -10,20 +11,19 @@ export default function App() {
     Roboto_700Bold
   })
 
-  if (!fontsLoaded) {
-    // return <Loading/>
-  }
-
   return (
-    <GluestackUIProvider>
-      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#202024'}}>
-        <StatusBar
-          barStyle='light-content'
-          backgroundColor='transparent'
-          translucent
-        />
-        <Text>Home</Text>
-      </View>
+    <GluestackUIProvider config={config}>
+      <StatusBar
+        barStyle='light-content'
+        backgroundColor='transparent'
+        translucent
+      />
+      {fontsLoaded ? (
+        <Center flex={1} bg='$gray700'>
+          <Text>Home</Text>
+
+        </Center>
+      ) : <View></View>}
     </GluestackUIProvider>
   );
 }
