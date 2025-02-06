@@ -1,6 +1,7 @@
 import { StatusBar, View } from 'react-native';
 import { Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/roboto';
 import { useFonts } from 'expo-font';
+import { GluestackUIProvider, Text } from '@gluestack-ui/themed';
 
 export default function App() {
 
@@ -14,6 +15,7 @@ export default function App() {
   }
 
   return (
+    <GluestackUIProvider>
       <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#202024'}}>
         <StatusBar
           barStyle='light-content'
@@ -22,5 +24,6 @@ export default function App() {
         />
         <Text>Home</Text>
       </View>
+    </GluestackUIProvider>
   );
 }
