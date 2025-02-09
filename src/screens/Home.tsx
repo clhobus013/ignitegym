@@ -1,10 +1,9 @@
 import { Center, Text } from "@gluestack-ui/themed"
 
 export function Home() {
-    return 
-    (
+    return (
         <Center flex={1}>
-            <Text>Home</Text>
+            <Text color="$white">Home</Text>
         </Center>
     )
 }
