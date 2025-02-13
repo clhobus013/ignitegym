@@ -18,6 +18,6 @@ export function Exercise() {
                     <Icon as={ArrowLeft} color="$green500" size="xl" />
                 </TouchableOpacity>
             </VStack>
-        </VStack>>
+        </VStack>
     )
 }
