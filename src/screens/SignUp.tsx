@@ -1,5 +1,7 @@
 import { VStack, Image, Center, Text, Heading, ScrollView } from "@gluestack-ui/themed";
 import { useForm, Controller } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 import { useNavigation } from "@react-navigation/native";
 import { AuthNavigatorRoutesProps } from "@routes/auth.routes";
@@ -17,9 +19,21 @@ type FormDataProps = {
     passwordConfirm: string
 }
 
+const signUpSchema = yup.object({
+    name: yup.string().required('Informe o nome do usuário'),
+    email: yup.string().required('Informe o email do usuário').email('Email inválido'),
+    password: yup.string().required('Informe a senha').min(6, 'A senha deve ter no mín. 6 dígitos'),
+    passwordConfirm: yup.string().required('Confirme a senha informada').oneOf([
+        yup.ref('password'), 
+        ""
+    ], "As senhas devem ser iguais"),
+});
+
 export function SignUp() {
 
-    const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>();
+    const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({
+        resolver: yupResolver(signUpSchema)
+    });
 
     const navigation = useNavigation<AuthNavigatorRoutesProps>();
 
@@ -58,9 +72,6 @@ export function SignUp() {
                         <Controller
                             control={control}
                             name="name"
-                            rules={{
-                                required: "Informe o nome do usuário."
-                            }}
                             render={({field: { onChange, value }}) => (
                                 <Input 
                                     placeholder="Nome" 
@@ -74,13 +85,6 @@ export function SignUp() {
                         <Controller
                             control={control}
                             name="email"
-                            rules={{
-                                required: "Informe o email",
-                                pattern: {
-                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                    message: "Email inválido"
-                                }
-                            }}
                             render={({field: { onChange, value }}) => (
                                 <Input 
                                     placeholder="E-mail"
@@ -102,6 +106,7 @@ export function SignUp() {
                                     secureTextEntry
                                     onChangeText={onChange}
                                     value={value}
+                                    errorMessage={errors.password?.message}
                                 />
                             )}
                         />
@@ -117,6 +122,7 @@ export function SignUp() {
                                     value={value}
                                     onSubmitEditing={handleSubmit(handleSignUp)}
                                     returnKeyType="send"
+                                    errorMessage={errors.passwordConfirm?.message}
                                 />
                             )}
                         />
