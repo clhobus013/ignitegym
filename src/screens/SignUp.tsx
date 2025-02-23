@@ -19,7 +19,7 @@ type FormDataProps = {
 
 export function SignUp() {
 
-    const { control, handleSubmit } = useForm<FormDataProps>();
+    const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>();
 
     const navigation = useNavigation<AuthNavigatorRoutesProps>();
 
@@ -58,11 +58,15 @@ export function SignUp() {
                         <Controller
                             control={control}
                             name="name"
+                            rules={{
+                                required: "Informe o nome do usuário."
+                            }}
                             render={({field: { onChange, value }}) => (
                                 <Input 
                                     placeholder="Nome" 
                                     onChangeText={onChange}
                                     value={value}
+                                    errorMessage={errors.name?.message}
                                 />
                             )}
                         />
@@ -70,6 +74,13 @@ export function SignUp() {
                         <Controller
                             control={control}
                             name="email"
+                            rules={{
+                                required: "Informe o email",
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: "Email inválido"
+                                }
+                            }}
                             render={({field: { onChange, value }}) => (
                                 <Input 
                                     placeholder="E-mail"
@@ -77,6 +88,7 @@ export function SignUp() {
                                     autoCapitalize="none"
                                     onChangeText={onChange}
                                     value={value}
+                                    errorMessage={errors.email?.message}
                                 />
                             )}
                         />
