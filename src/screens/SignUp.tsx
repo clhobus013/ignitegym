@@ -1,4 +1,4 @@
-import { VStack, Image, Center, Text, Heading, ScrollView } from "@gluestack-ui/themed";
+import { VStack, Image, Center, Text, Heading, ScrollView, useToast } from "@gluestack-ui/themed";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -8,13 +8,14 @@ import { AuthNavigatorRoutesProps } from "@routes/auth.routes";
 
 import { api } from "../service/api";
 
+import { AppError } from "@utils/AppError";
+
 import BackgroundImg from "@assets/background.png";
 import Logo from "@assets/logo.svg";
 
 import { Input } from "@components/Input";
 import { Button } from "@components/Button";
-import axios from "axios";
-import { Alert } from "react-native";
+import { ToastMessage } from "@components/ToastMessage";
 
 type FormDataProps = {
     name: string
@@ -35,6 +36,8 @@ const signUpSchema = yup.object({
 
 export function SignUp() {
 
+    const toast = useToast();
+
     const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({
         resolver: yupResolver(signUpSchema)
     });
@@ -50,13 +53,16 @@ export function SignUp() {
             const response = await api.post("/users", {name, email, password});
             console.log(response.data)
         } catch (error) {
-            if(axios.isAxiosError(error)){
-                Alert.alert(error.response?.data.message)
-            } else {
-                console.log(error);
-            }
-        }
+            const isAppError = error instanceof AppError;
+            const title = isAppError ? error.message : "Não foi possível criar a conta, tente novamente mais tarde";
 
+            toast.show({
+                placement: "top",
+                render: ({id}) => (
+                    <ToastMessage id={id} title={title} action="error" onClose={() => toast.close(id)} />
+                )
+            })
+        }
     }
 
     return (
