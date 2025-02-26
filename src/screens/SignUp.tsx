@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { VStack, Image, Center, Text, Heading, ScrollView, useToast } from "@gluestack-ui/themed";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
@@ -7,6 +8,7 @@ import { useNavigation } from "@react-navigation/native";
 import { AuthNavigatorRoutesProps } from "@routes/auth.routes";
 
 import { api } from "../service/api";
+import { useAuth } from "@hooks/useAuth";
 
 import { AppError } from "@utils/AppError";
 
@@ -35,6 +37,9 @@ const signUpSchema = yup.object({
 });
 
 export function SignUp() {
+    const [isLoading, setIsLoading] = useState(false);
+
+    const { signIn } = useAuth();
 
     const toast = useToast();
 
@@ -50,9 +55,12 @@ export function SignUp() {
 
     async function handleSignUp({name, email, password}: FormDataProps) {
         try {
-            const response = await api.post("/users", {name, email, password});
-            console.log(response.data)
+            setIsLoading(true);
+            await api.post("/users", {name, email, password});
+            await signIn(email, password);
+
         } catch (error) {
+            setIsLoading(false);
             const isAppError = error instanceof AppError;
             const title = isAppError ? error.message : "Não foi possível criar a conta, tente novamente mais tarde";
 
@@ -147,7 +155,7 @@ export function SignUp() {
                             )}
                         />
 
-                        <Button title="Criar e acessar" onPress={handleSubmit(handleSignUp)}/>
+                        <Button title="Criar e acessar" onPress={handleSubmit(handleSignUp)} isLoading={isLoading}/>
                     </Center>
 
                     <Button 
