@@ -1,4 +1,5 @@
-import { VStack, Image, Center, Text, Heading, ScrollView } from "@gluestack-ui/themed";
+import { VStack, Image, Center, Text, Heading, ScrollView, useToast } from "@gluestack-ui/themed";
+import { Controller, useForm } from "react-hook-form";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,7 +12,10 @@ import Logo from "@assets/logo.svg";
 
 import { Input } from "@components/Input";
 import { Button } from "@components/Button";
-import { Controller, useForm } from "react-hook-form";
+import { ToastMessage } from "@components/ToastMessage";
+
+import { useAuth } from "@hooks/useAuth";
+import { AppError } from "@utils/AppError";
 
 type FormDataProps = {
     email: string
@@ -24,6 +28,9 @@ const signInSchema = yup.object({
 })
 
 export function SignIn() {
+    const { signIn } = useAuth();
+
+    const toast = useToast();
 
     const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({
         resolver: yupResolver(signInSchema)
@@ -35,8 +42,20 @@ export function SignIn() {
         navigation.navigate("signUp");
     }
 
-    function handleLogin(data: FormDataProps){
-        console.log(data)
+    async function handleLogin({email, password}: FormDataProps){
+        try {
+            await signIn(email, password);
+        } catch (error) {
+            const isAppError = error instanceof AppError;
+            const title = isAppError ? error.message : "Não foi possível entrar. Tente novamente mais tader";
+
+            return toast.show({
+                placement: "top",
+                render: ({id}) => (
+                    <ToastMessage id={id} title={title} action="error" onClose={() => toast.close(id)} />
+                )
+            })
+        }
     }
 
     return (
