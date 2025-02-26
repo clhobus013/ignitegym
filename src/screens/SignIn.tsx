@@ -16,6 +16,7 @@ import { ToastMessage } from "@components/ToastMessage";
 
 import { useAuth } from "@hooks/useAuth";
 import { AppError } from "@utils/AppError";
+import { useState } from "react";
 
 type FormDataProps = {
     email: string
@@ -28,6 +29,8 @@ const signInSchema = yup.object({
 })
 
 export function SignIn() {
+    const [isLoading, setIsLoading] = useState(false);
+
     const { signIn } = useAuth();
 
     const toast = useToast();
@@ -44,10 +47,13 @@ export function SignIn() {
 
     async function handleLogin({email, password}: FormDataProps){
         try {
+            setIsLoading(true);
             await signIn(email, password);
         } catch (error) {
             const isAppError = error instanceof AppError;
             const title = isAppError ? error.message : "Não foi possível entrar. Tente novamente mais tader";
+
+            setIsLoading(false);
 
             return toast.show({
                 placement: "top",
@@ -111,7 +117,7 @@ export function SignIn() {
                             )}
                         />
 
-                        <Button title="Acessar" onPress={handleSubmit(handleLogin)}/>
+                        <Button title="Acessar" onPress={handleSubmit(handleLogin)} isLoading={isLoading}/>
                     </Center>
 
                     <Center flex={1} justifyContent="flex-end" mt="$4">	
