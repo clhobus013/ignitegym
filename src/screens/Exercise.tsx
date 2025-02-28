@@ -1,19 +1,20 @@
+import { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity } from "react-native"
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Box, Heading, HStack, Icon, Image, Text, useToast, VStack } from "@gluestack-ui/themed"
 import { ArrowLeft } from "lucide-react-native"
 import { AppNavigatorRoutesProps } from "@routes/app.routes";
 
+import { AppError } from "@utils/AppError";
+import { api } from "../service/api";
+import { ExerciseDTO } from "@dtos/ExerciseDTO";
+
 import BodySvg from "@assets/body.svg"
 import SeriesSvg from "@assets/series.svg"
 import RepetitionsSvg from "@assets/repetitions.svg"
 
 import { Button } from "@components/Button";
-import { api } from "../service/api";
-import { AppError } from "@utils/AppError";
 import { ToastMessage } from "@components/ToastMessage";
-import { useEffect, useState } from "react";
-import { ExerciseDTO } from "@dtos/ExerciseDTO";
 import { Loading } from "@components/Loading";
 
 type RoutesParamsProps = {
@@ -21,6 +22,7 @@ type RoutesParamsProps = {
 }
 
 export function Exercise() {
+    const [sendingRegister, setSendingRegister] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [exercise, setExercise] = useState<ExerciseDTO>({} as ExerciseDTO);
 
@@ -53,6 +55,36 @@ export function Exercise() {
             })
         } finally {
             setIsLoading(false);
+        }
+    }
+
+    async function handleExerciseHistoryRegister() {
+        try {
+            setSendingRegister(true);
+
+            await api.post('/history', { exercise_id: exerciseId})
+
+            toast.show({
+                placement: 'top',
+                render: ({id}) => (
+                    <ToastMessage id={id} title="Parabéns" description="Exercício registrado no seu histórico" onClose={() => toast.close(id)} />
+                )
+            });
+
+            navigation.navigate('history');
+            
+        } catch (error) {
+            const isAppError = error instanceof AppError;
+            const title = isAppError ? error.message : 'Não foi possível registrar o exercício';
+
+            toast.show({
+                placement: 'top',
+                render: ({id}) => (
+                    <ToastMessage id={id} title={title} action="error" onClose={() => toast.close(id)} />
+                )
+            })
+        } finally {
+            setSendingRegister(false);
         }
     }
 
@@ -115,7 +147,7 @@ export function Exercise() {
                                 </HStack>
                             </HStack>
 
-                            <Button title="Marcar como realizado"/>
+                            <Button title="Marcar como realizado" isLoading={sendingRegister} onPress={handleExerciseHistoryRegister}/>
                         </Box>
 
                     </VStack>
