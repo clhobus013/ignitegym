@@ -3,18 +3,24 @@ import { ScrollView, TouchableOpacity } from "react-native"
 import { Center, Heading, Text, VStack, useToast } from "@gluestack-ui/themed"
 import * as ImagePicker from "expo-image-picker"
 import * as FileSystem from "expo-file-system"
+
 import * as yup from 'yup';
+import mime from "mime";
+
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Controller, useForm } from "react-hook-form"
+
+import DefaultUserPhotoImg from '@assets/userPhotoDefault.png'
+
+import { useAuth } from "@hooks/useAuth"
+import { api } from "../service/api"
+import { AppError } from "@utils/AppError"
 
 import { Input } from "@components/Input"
 import { Button } from "@components/Button"
 import { UserPhoto } from "@components/UserPhoto"
 import { ScreenHeader } from "@components/ScreenHeader"
 import { ToastMessage } from "@components/ToastMessage"
-import { Controller, useForm } from "react-hook-form"
-import { useAuth } from "@hooks/useAuth"
-import { api } from "../service/api"
-import { AppError } from "@utils/AppError"
 
 type FormDataProps = {
     name: string;
@@ -40,7 +46,7 @@ const profileSchema = yup.object({
 
 export function Profile() {
     const [isUpdating, setIsUpdating] = useState(false);
-    const [userPhoto, setUserPhoto] = useState("https:github.com/clhobus013.png");
+    const [photoIsLoading, setPhotoIsLoading] = useState(false);
 
     const toast = useToast();
     const { user, updateUserProfile } = useAuth();
@@ -54,6 +60,8 @@ export function Profile() {
 
     async function handleUserPhotoSelect() {
         try {
+            setPhotoIsLoading(true);
+
             const photoSelected = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ["images"],
                 quality: 1,
@@ -77,12 +85,51 @@ export function Profile() {
                             <ToastMessage id={id} title="Imagem excedeu os limites" description="Essa imagem é muito grande, escolha uma de até 5MB." action="error" onClose={() => toast.close(id)} />
                         )
                     })
-               } 
+               }
+
+                const fileExtension = photoSelected.assets[0].uri.split('.').pop();
     
-                setUserPhoto(photoURI)
+                const photoFile = {
+                    name: `${user.name}.${fileExtension}`.toLowerCase(),
+                    uri: photoSelected.assets[0].uri,
+                    type: mime.getType(`${photoSelected.assets[0].uri}`)
+                } as any;
+
+                const userPhotoUploadForm = new FormData();
+                userPhotoUploadForm.append('avatar', photoFile);
+
+                const avatarUpdatedResponse = await api.patch('/users/avatar', userPhotoUploadForm, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                const userUpdated = user;
+                userUpdated.avatar = avatarUpdatedResponse.data.avatar;
+
+                await updateUserProfile(userUpdated);
+
+                toast.show({
+                    placement: "top",
+                    render: ({id}) => (
+                        <ToastMessage id={id} title="Sucesso!" description="Foto atualizada com sucesso." onClose={() => toast.close(id)} />
+                    )
+                })
+
             }
         } catch (error) {
-            console.log(error)
+            const isAppError = error instanceof AppError;
+            const title = isAppError ? error.message : 'Não foi possível atualizar a foto';
+
+            toast.show({
+                placement: 'top',
+                render: ({id}) => (
+                    <ToastMessage id={id} title={title} action="error" onClose={() => toast.close(id)} />
+                )
+            })
+        } finally {
+            setPhotoIsLoading(false);
         }
     }
 
@@ -126,7 +173,8 @@ export function Profile() {
             <ScrollView contentContainerStyle={{paddingBottom: 36}}>
                 <Center mt="$6" px="$10">
                     <UserPhoto
-                        source={{uri: userPhoto}} alt="Foto de perfil do usuário"
+                        source={ user.avatar ? {uri: `${api.defaults.baseURL}/avatar/${user.avatar}`} : DefaultUserPhotoImg}
+                        alt="Foto de perfil do usuário"
                         size="xl"
                     />
 

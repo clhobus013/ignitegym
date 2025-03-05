@@ -5,6 +5,7 @@ import { LogOut } from "lucide-react-native";
 import { useAuth } from "@hooks/useAuth";
 
 import DefaultUserPhotoImg from '@assets/userPhotoDefault.png'
+import { api } from "../service/api";
 
 export function HomeHeader() {
 
@@ -20,7 +21,7 @@ export function HomeHeader() {
             gap="$4"
         >
             <UserPhoto
-                source={ user.avatar ? {uri: user.avatar} : DefaultUserPhotoImg}
+                source={ user.avatar ? {uri: `${api.defaults.baseURL}/avatar/${user.avatar}`} : DefaultUserPhotoImg}
                 w="$16"
                 h="$16"
                 alt="Foto de perfil"
